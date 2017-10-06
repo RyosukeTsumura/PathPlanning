@@ -146,7 +146,7 @@ set(handles.edit2,'String',num2str(OptPos_y));
 tumor = handles.tumor;
 
 hold on
-plot([OptPos_x,tumor(1)],[OptPos_y,tumor(2)],'-o','LineWidth',2,'MarkerSize',10,'MarkerFaceColor',[0.5,0.5,0.5]);
+plot([OptPos_x,tumor(1)],[OptPos_y,tumor(2)],'-o','LineWi''MarkerSize',10,);
 %plot(handle.tumor(1),handle.tumor(2),'o','MarkerSize',20)
 
 
