@@ -1,0 +1,188 @@
+function varargout = PathPlanGUI(varargin)
+% PATHPLANGUI MATLAB code for PathPlanGUI.fig
+%      PATHPLANGUI, by itself, creates a new PATHPLANGUI or raises the existing
+%      singleton*.
+%
+%      H = PATHPLANGUI returns the handle to a new PATHPLANGUI or the handle to
+%      the existing singleton*.
+%
+%      PATHPLANGUI('CALLBACK',hObject,eventData,handles,...) calls the local
+%      function named CALLBACK in PATHPLANGUI.M with the given input arguments.
+%
+%      PATHPLANGUI('Property','Value',...) creates a new PATHPLANGUI or raises the
+%      existing singleton*.  Starting from the left, property value pairs are
+%      applied to the GUI before PathPlanGUI_OpeningFcn gets called.  An
+%      unrecognized property name or invalid value makes property application
+%      stop.  All inputs are passed to PathPlanGUI_OpeningFcn via varargin.
+%
+%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
+
+% Edit the above text to modify the response to help PathPlanGUI
+
+% Last Modified by GUIDE v2.5 12-Sep-2017 13:46:05
+
+% Begin initialization code - DO NOT EDIT
+gui_Singleton = 1;
+gui_State = struct('gui_Name',       mfilename, ...
+                   'gui_Singleton',  gui_Singleton, ...
+                   'gui_OpeningFcn', @PathPlanGUI_OpeningFcn, ...
+                   'gui_OutputFcn',  @PathPlanGUI_OutputFcn, ...
+                   'gui_LayoutFcn',  [] , ...
+                   'gui_Callback',   []);
+if nargin && ischar(varargin{1})
+    gui_State.gui_Callback = str2func(varargin{1});
+end
+
+if nargout
+    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+else
+    gui_mainfcn(gui_State, varargin{:});
+end
+% End initialization code - DO NOT EDIT
+
+
+% --- Executes just before PathPlanGUI is made visible.
+function PathPlanGUI_OpeningFcn(hObject, eventdata, handles, varargin)
+% This function has no output args, see OutputFcn.
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% varargin   command line arguments to PathPlanGUI (see VARARGIN)
+
+% Choose default command line output for PathPlanGUI
+handles.output = hObject;
+
+% Update handles structure
+guidata(hObject, handles);
+
+% UIWAIT makes PathPlanGUI wait for user response (see UIRESUME)
+% uiwait(handles.figure1);
+
+
+% --- Outputs from this function are returned to the command line.
+function varargout = PathPlanGUI_OutputFcn(hObject, eventdata, handles) 
+% varargout  cell array for returning output args (see VARARGOUT);
+% hObject    handle to figure
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Get default command line output from handles structure
+varargout{1} = handles.output;
+
+
+% --- Executes on button press in ReadImage.
+function ReadImage_Callback(hObject, eventdata, handles)
+% hObject    handle to ReadImage (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[I,row,col]=ReadImage();
+imshow(I);
+handles.srcImage = I;
+handles.srcSize = [row, col];
+guidata(hObject,handles);
+
+% --- Executes on button press in Skin.
+function Skin_Callback(hObject, eventdata, handles)
+% hObject    handle to Skin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[skin, ip] = SkinMeasure(handles.srcImage);
+handles.skin = skin;
+handles.ip = ip;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in Muscle.
+function Muscle_Callback(hObject, eventdata, handles)
+% hObject    handle to Muscle (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+muscle = BoundaryMeasure(handles.srcImage);
+handles.muscle = muscle;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in Membrane.
+function Membrane_Callback(hObject, eventdata, handles)
+% hObject    handle to Membrane (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+membrane = BoundaryMeasure(handles.srcImage);
+handles.membrane = membrane;
+guidata(hObject,handles);
+
+% --- Executes on button press in Tumor.
+function Tumor_Callback(hObject, eventdata, handles)
+% hObject    handle to Tumor (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+tumor = SelectTarget(handles.srcImage);
+handles.tumor = tumor;
+guidata(hObject,handles);
+
+
+% --- Executes on button press in Planning.
+function Planning_Callback(hObject, eventdata, handles)
+% hObject    handle to Planning (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[OptPos_x, OptPos_y] = Planning(handles.srcSize,handles.ip,handles.tumor,handles.skin,handles.muscle,handles.membrane);
+set(handles.edit1,'String',num2str(OptPos_x));
+set(handles.edit2,'String',num2str(OptPos_y));
+
+tumor = handles.tumor;
+
+hold on
+plot([OptPos_x,tumor(1)],[OptPos_y,tumor(2)],'-o','MarkerSize',20);
+%plot(handle.tumor(1),handle.tumor(2),'o','MarkerSize',20)
+
+
+guidata(hObject,handles);
+
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit1 as text
+%        str2double(get(hObject,'String')) returns contents of edit1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit2_Callback(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit2 as text
+%        str2double(get(hObject,'String')) returns contents of edit2 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit2_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
